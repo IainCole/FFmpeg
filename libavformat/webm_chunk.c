@@ -224,7 +224,7 @@ static int webm_chunk_write_packet(AVFormatContext *s, AVPacket *pkt)
         wc->prev_pts = pkt->pts;
     }
 
-    if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (oc->pb && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
       av_log(oc, AV_LOG_INFO, "Packet flags '%n'\n", pkt->flags);
     }
 
