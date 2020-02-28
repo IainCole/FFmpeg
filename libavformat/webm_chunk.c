@@ -238,7 +238,7 @@ static int webm_chunk_write_packet(AVFormatContext *s, AVPacket *pkt)
         wc->duration_written = 0;
         av_log(oc, AV_LOG_INFO, "Writing WEBM chunk\n");
         if ((ret = chunk_end(s, 1)) < 0 || (ret = chunk_start(s)) < 0) {
-            return ret;AVP
+            return ret;
         }
     }
 
