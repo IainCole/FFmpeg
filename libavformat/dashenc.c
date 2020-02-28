@@ -1823,6 +1823,48 @@ static int dash_write_packet(AVFormatContext *s, AVPacket *pkt)
     return ret;
 }
 
+static int dash_write_packet_vp9(AVFormatContext *s, AVPacket *pkt)
+{
+    int ret;
+    if (pkt->flags & AV_PKT_FLAG_SVT_VP9_EXT_ON) {
+        uint8_t *saved_data = pkt->data;
+        int      saved_size = pkt->size;
+        int64_t  saved_pts  = pkt->pts;
+
+        // Main frame
+        pkt->data = saved_data;
+        pkt->size = saved_size - 4;
+        pkt->pts = saved_pts;
+        ret = dash_write_packet(s, pkt);
+
+        // Latter 4 one-byte repeated frames
+        pkt->data = saved_data + saved_size - 4;
+        pkt->size = 1;
+        pkt->pts = saved_pts - 2;
+        ret = dash_write_packet(s, pkt);
+
+        pkt->data = saved_data + saved_size - 3;
+        pkt->size = 1;
+        pkt->pts = saved_pts - 1;
+        ret = dash_write_packet(s, pkt);
+
+        pkt->data = saved_data + saved_size - 2;
+        pkt->size = 1;
+        pkt->pts = saved_pts;
+        ret = dash_write_packet(s, pkt);
+
+        pkt->data = saved_data + saved_size - 1;
+        pkt->size = 1;
+        pkt->pts = saved_pts + 1;
+        ret = dash_write_packet(s, pkt);
+    }
+    else{
+        ret = dash_write_packet(s, pkt);
+    }
+
+    return ret;
+}
+
 static int dash_write_trailer(AVFormatContext *s)
 {
     DASHContext *c = s->priv_data;
@@ -1870,6 +1912,11 @@ static int dash_check_bitstream(struct AVFormatContext *s, const AVPacket *avpkt
     DASHContext *c = s->priv_data;
     OutputStream *os = &c->streams[avpkt->stream_index];
     AVFormatContext *oc = os->ctx;
+
+    if ((avpkt->flags & AV_PKT_FLAG_SVT_VP9_EXT_ON) ||
+        (avpkt->flags & AV_PKT_FLAG_SVT_VP9_EXT_OFF))
+        return 0;
+
     if (oc->oformat->check_bitstream) {
         int ret;
         AVPacket pkt = *avpkt;
@@ -1942,7 +1989,7 @@ AVOutputFormat ff_dash_muxer = {
     .flags          = AVFMT_GLOBALHEADER | AVFMT_NOFILE | AVFMT_TS_NEGATIVE,
     .init           = dash_init,
     .write_header   = dash_write_header,
-    .write_packet   = dash_write_packet,
+    .write_packet   = dash_write_packet_vp9,
     .write_trailer  = dash_write_trailer,
     .deinit         = dash_free,
     .check_bitstream = dash_check_bitstream,
