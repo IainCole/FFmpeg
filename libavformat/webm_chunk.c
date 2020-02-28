@@ -225,7 +225,7 @@ static int webm_chunk_write_packet(AVFormatContext *s, AVPacket *pkt)
     }
 
     if (oc->pb && pkt->flags && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-      av_log(oc, AV_LOG_INFO, "Packet flags '%n'\n", pkt->flags);
+      av_log(oc, AV_LOG_INFO, "Packet flags '%n'\n", &pkt->flags);
     }
 
     // For video, a new chunk is started only on key frames. For audio, a new
