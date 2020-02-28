@@ -224,6 +224,10 @@ static int webm_chunk_write_packet(AVFormatContext *s, AVPacket *pkt)
         wc->prev_pts = pkt->pts;
     }
 
+    if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+      av_log(oc, AV_LOG_INFO, "Packet flags '%n'\n", pkt->flags);
+    }
+
     // For video, a new chunk is started only on key frames. For audio, a new
     // chunk is started based on chunk_duration. Also, a new chunk is started
     // unconditionally if there is no currently open chunk.
@@ -232,6 +236,7 @@ static int webm_chunk_write_packet(AVFormatContext *s, AVPacket *pkt)
         (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO &&
          wc->duration_written >= wc->chunk_duration)) {
         wc->duration_written = 0;
+        av_log(oc, AV_LOG_INFO, "Writing WEBM chunk");
         if ((ret = chunk_end(s, 1)) < 0 || (ret = chunk_start(s)) < 0) {
             return ret;
         }
