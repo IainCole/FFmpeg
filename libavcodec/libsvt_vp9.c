@@ -371,7 +371,7 @@ static int eb_receive_packet(AVCodecContext *avctx, AVPacket *pkt)
     pkt->size = headerPtr->n_filled_len;
     pkt->pts  = headerPtr->pts;
     pkt->dts  = headerPtr->dts;
-    if (headerPtr->pic_type == EB_IDR_PICTURE)
+    if (headerPtr->pic_type == EB_IDR_PICTURE || headerPtr->pic_type == EB_I_PICTURE)
         pkt->flags |= AV_PKT_FLAG_KEY;
     if (headerPtr->pic_type == EB_NON_REF_PICTURE)
         pkt->flags |= AV_PKT_FLAG_DISPOSABLE;
